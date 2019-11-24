@@ -19,9 +19,13 @@ export class TestService {
   load() {
     this.receiveCounter().subscribe((data: number) => {
       this.counter = data;
+      console.log('counter signal');
+      this.emitCounter();
     });
     this.receiveUsers().subscribe((data: number) => {
       this.users = data;
+      console.log('users signal');
+      this.emitUsers();
     });
     this.socket.connect();
     this.connected = true;
@@ -48,17 +52,16 @@ export class TestService {
   disconnect() {
     this.socket.disconnect();
     this.connected = false;
+    this.users -= 1;
     this.emitConnected();
   }
 
   increment() {
     this.socket.emit('counter' , 1);
-    this.emitCounter();
   }
 
   decrement() {
     this.socket.emit('counter' , -1);
-    this.emitCounter();
   }
 
   receiveCounter() {

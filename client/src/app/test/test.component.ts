@@ -37,22 +37,18 @@ export class TestComponent implements OnInit {
   }
 
   onConnect() {
-    console.log('tentative de connexion');
     this.testService.connect();
   }
 
   onDisconnect() {
-    console.log('tentative de déconnexion');
     this.testService.disconnect();
   }
 
   onIncrement() {
-    console.log("Incrementation effectuée");
     this.testService.increment();
   }
 
   onDecrement() {
-    console.log("Decrementation effectuée");
     this.testService.decrement();
   }
 

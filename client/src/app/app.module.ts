@@ -8,7 +8,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule, MatCardModule } from '@angular/material';
 import { SocketIoModule, SocketIoConfig}  from 'ngx-socket-io'
 
-const config: SocketIoConfig = {url: 'http://localhost:3000', options: {}};
+const config: SocketIoConfig = {url: 'http://192.168.137.1:3000', options: {}};
 
 @NgModule({
   declarations: [

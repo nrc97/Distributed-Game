@@ -13,7 +13,7 @@ export class ObserverGateway implements OnGatewayConnection, OnGatewayDisconnect
 
         // Notify connected clients of current users
         this.server.emit('users', this.users);
-
+        this.server.emit('counter', this.counter);
     }
 
     async handleDisconnect() {
@@ -23,11 +23,13 @@ export class ObserverGateway implements OnGatewayConnection, OnGatewayDisconnect
 
         // Notify connected clients of current users
         this.server.emit('users', this.users);
+        this.server.emit('counter', this.counter);
     }
 
     @SubscribeMessage('counter')
     async onCounter(client, nombre: number) {
+        console.log('compteur: ', nombre);
         this.counter += nombre;
-        client.broadcast.emit('counter', this.counter);
+        this.server.emit('counter', this.counter);
     }
 }

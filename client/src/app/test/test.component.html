@@ -26,7 +26,7 @@
     <h1 *ngIf="!connected">--</h1>
   </mat-card-content>
   <mat-card-actions>
-    <button mat-button (click)="onIncrement()">Incrementer</button>
-    <button mat-button (click)="onDecrement()">Decrementer</button>
+    <button mat-button [disabled]="!connected" (click)="onIncrement()">Incrementer</button>
+    <button mat-button [disabled]="!connected" (click)="onDecrement()">Decrementer</button>
   </mat-card-actions>
 </mat-card>

@@ -29,6 +29,7 @@ export class TestService {
     });
     this.socket.connect();
     this.connected = true;
+    this.emitConnected();
   }
 
   emitUsers() {

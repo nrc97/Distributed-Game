@@ -1,4 +1,5 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { GameService } from 'src/services/game/game.service';
 
 @WebSocketGateway()
 export class ObserverGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -6,6 +7,7 @@ export class ObserverGateway implements OnGatewayConnection, OnGatewayDisconnect
     @WebSocketServer() server;
     users: number = 0;
     counter: number = 0;
+    constructor(private gameService: GameService){}
 
     async handleConnection() {
         // A client has connected

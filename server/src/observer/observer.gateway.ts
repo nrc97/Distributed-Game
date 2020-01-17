@@ -55,7 +55,7 @@ export class ObserverGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     @SubscribeMessage('move')
-    async onMovement(@MessageBody() data: {player: Player, movement: string}) {
+    async onMovement(@MessageBody() data: {player: number, movement: string}) {
         await this.gameService.move(data.player, data.movement);
         this.reload();
     }

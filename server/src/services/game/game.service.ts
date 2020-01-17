@@ -21,7 +21,13 @@ export class GameService {
         this.generateLollipops(lollipopsQte);
     }
 
-    async move(player: Player, movement: string) {
+    async move(playerID: number, movement: string) {
+        let player: Player = new Player();
+        this.players.forEach(elt => {
+            if (elt.id === playerID) {
+                player = elt;
+            }
+        });
         if (movement === 'up' && player.coordy > 0) {
             if (!this.coordinatesConflict(this.players, player.coordx, player.coordy - 20)) {
                 player.coordy -= 20;

@@ -4,6 +4,7 @@ export class Player {
     coordy: number;
     color: string;
     size: number;
+    score: number;
     constructor() {
         this.id = 0;
         this.coordx = 0;

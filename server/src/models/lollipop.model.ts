@@ -8,7 +8,7 @@ export class Lollipop {
         this.id = 0;
         this.coordx = 100;
         this.coordy = 100;
-        this.color = 'red';
+        this.color = 'gold';
         this.size = 20;
     }
 }

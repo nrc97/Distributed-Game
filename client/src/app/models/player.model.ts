@@ -4,15 +4,15 @@ export class Player {
     coordy: number;
     color: string;
     size: number;
-    constructor(private ctx: CanvasRenderingContext2D) {
-        this.id = 0;
+    constructor() {
+        this.id = -1;
         this.coordx = 0;
         this.coordy = 0;
         this.color = 'red';
         this.size = 20;
     }
 
-    moveRight() {
+    /*moveRight() {
         if (this.coordx + 20 < this.ctx.canvas.width) {
             this.ctx.clearRect(this.coordx, this.coordy, this.size, this.size);
             this.coordx += this.size;
@@ -47,5 +47,5 @@ export class Player {
     draw() {
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(this.coordx, this.coordy, this.size, this.size);
-    }
+    }*/
 }

@@ -8,6 +8,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule, MatCardModule } from '@angular/material';
 import { SocketIoModule, SocketIoConfig}  from 'ngx-socket-io';
 import { CanvasComponent } from './canvas/canvas.component'
+import { HttpClientModule } from '@angular/common/http';
 
 const config: SocketIoConfig = {url: 'http://192.168.137.1:3000', options: {}};
 
@@ -18,6 +19,7 @@ const config: SocketIoConfig = {url: 'http://192.168.137.1:3000', options: {}};
     CanvasComponent
   ],
   imports: [
+    HttpClientModule,
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,

@@ -5,7 +5,7 @@ import { Lollipop } from 'src/models/lollipop.model';
 import { Subscription } from 'rxjs';
 import { Canvas } from 'src/models/canvas.model';
 
-@WebSocketGateway()
+@WebSocketGateway(8082, {transports: ['websocket']})
 export class ObserverGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @WebSocketServer() server;

@@ -1,4 +1,27 @@
 <div>
+  <button mat-flat-button color="primary" (click)="onNewGame()" [disabled]="getGameEnCours()">Nouvelle partie</button>
+  <button mat-flat-button color="accent" (click)="onResetScore()" [disabled]="getGameEnCours()">Remise à Zéro</button>
+  <button mat-flat-button color="primary" (click)="onEnterGame()" [disabled]="!getGameEnCours()"  *ngIf="player.id === -1 || (player.id !== -1 && player.available === false)">Rejoindre la partie</button>
+  <button mat-flat-button color="warn" (click)="onLeaveGame()" *ngIf="player.id !== -1 && player.available === true">Quitter la partie</button>
+</div>
+<div>
+</div>
+<div>
   <canvas #canvas width="600" height="400"></canvas>
 </div>
-<button mat-button (click)="player.moveRight()">A droite</button>
+<mat-chip-list>
+  <mat-chip *ngFor="let sortedPlayer of getSortedPlayers(); let i = index" [ngStyle]="{'border': '2px solid ' + sortedPlayer.color, 'background-color': sortedPlayer.color }" selected>ID: {{sortedPlayer.id}} | Score: {{sortedPlayer.score}}</mat-chip>
+</mat-chip-list>
+<div>
+  <div>
+    <button mat-icon-button (click)="keyDownEvent({code: 'ArrowUp'})"><mat-icon svgIcon="arrow_up"></mat-icon></button>
+  </div>
+  <div>
+    <button mat-icon-button (click)="keyDownEvent({code: 'ArrowLeft'})"><mat-icon svgIcon="arrow_left"></mat-icon></button>
+    <button mat-icon-button (click)="keyDownEvent({code: 'Space'})"><mat-icon svgIcon="stop"></mat-icon></button>
+    <button mat-icon-button (click)="keyDownEvent({code: 'ArrowRight'})"><mat-icon svgIcon="arrow_right"></mat-icon></button>
+  </div>
+  <div>
+    <button mat-icon-button (click)="keyDownEvent({code: 'ArrowDown'})"><mat-icon svgIcon="arrow_down"></mat-icon></button>
+  </div>
+</div>

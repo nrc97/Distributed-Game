@@ -10,6 +10,8 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class GameService {
+  gameEnded = true;
+  code: number = Math.floor(Math.random() * 1000000);
   canvas: Canvas = new Canvas();
   player: Player = new Player();
   players: Player[] = [];
@@ -18,23 +20,58 @@ export class GameService {
   playerSubject: Subject<Player> = new Subject<Player>();
   lollipopsSubject: Subject<Lollipop[]> = new Subject<Lollipop[]>();
   playersSubject: Subject<Player[]> = new Subject<Player[]>();
+  dataSubject: Subject<{players: Player[], lollipops: Lollipop[]}> = new Subject<{players: Player[], lollipops: Lollipop[]}>();
   constructor(private socket: Socket, private httpClient: HttpClient) { }
 
   load() {
     this.reload().subscribe((data: {players: Player[], lollipops: Lollipop[]}) => {
       this.lollipops = data.lollipops;
-      this.players = data.lollipops;
-      this.emitLollipops();
-      this.emitPlayers();
+      this.players = data.players;
+      this.emitData();
+      // console.log('data reloaded', data);
+    }, error => {
+      console.log(error);
     });
     this.reloadPlayers().subscribe((data: Player[]) => {
       this.players = data;
       this.emitPlayers();
+      // console.log('players emiited', this.players);
+    }, error => {
+      console.log(error);
     });
     this.reloadLollipops().subscribe((data: Lollipop[]) => {
       this.lollipops = data;
       this.emitLollipops();
+    }, error => {
+      console.log(error);
     });
+    this.playerAdded().subscribe((data: {code: number, player: Player}) => {
+      if (this.code === data.code) {
+        this.player = data.player;
+        this.emitPlayer();
+        console.log('player added and emitted', this.player);
+      }
+      this.emitPlayers();
+    });
+    this.reloadCanvas().subscribe((data: Canvas) => {
+      this.canvas.enCours = data.enCours;
+      this.canvas.height = data.height;
+      this.canvas.id = data.id;
+      this.canvas.width = data.width;
+      this.emitCanvas();
+      console.log('canvas emitted', this.canvas);
+    });
+    this.onGameEnded().subscribe(() => {
+      this.gameEnded = true;
+    });
+    this.onDeclareStatus().subscribe(() => {
+      this.declareStatus();
+    });
+    this.socket.connect();
+    this.emitCanvas();
+    this.emitData();
+    this.emitPlayer();
+    this.getGameStatus();
 
   }
 
@@ -52,6 +89,22 @@ export class GameService {
     return this.socket.fromEvent('reload-lollipops');
   }
 
+  reloadCanvas() {
+    return this.socket.fromEvent('reload-canvas');
+  }
+
+  playerAdded() {
+    return this.socket.fromEvent('player-added');
+  }
+
+  onDeclareStatus() {
+    return this.socket.fromEvent('declare-status');
+  }
+
+  onGameEnded() {
+    return this.socket.fromEvent('game-ended');
+  }
+
   emitCanvas() {
     this.canvasSubject.next(this.canvas);
   }
@@ -65,16 +118,39 @@ export class GameService {
     this.lollipopsSubject.next(this.lollipops.slice());
   }
 
-  newPlayer() {
-    if (this.player.id !== -1) {
-      this.httpClient.post('http://192.168.137.1:3000/api/players', JSON.stringify(new Player())).subscribe((data: Player) => {
-      this.player = data;
+  emitData() {
+    this.dataSubject.next({players: this.players.slice(), lollipops: this.lollipops.slice()});
+  }
+
+  enterGame() {
+    console.log('on enter game');
+    if (this.player.id === -1) {
+      this.socket.emit('new-player', this.code);
+    } else {
+      this.player.available = true;
       this.emitPlayer();
-      this.socket.emit('new-player');
-      });
+      this.declareStatus();
     }
   }
   newGame() {
-    this.socket.emit('new-game');
+    console.log('on new game');
+    this.socket.emit('new-game', 20);
+    this.gameEnded = false;
+  }
+  resetScore() {
+    console.log('RàZ');
+    this.socket.emit('reset-scores');
+  }
+  getGameStatus() {
+    this.socket.emit('game-status');
+  }
+  leaveGame() {
+    this.player.available = false;
+    this.emitPlayer();
+    this.declareStatus();
+  }
+  declareStatus() {
+    this.socket.emit('status-declared', {id: this.player.id, available: this.player.available});
+    console.log('status-declared', this.player.available);
   }
 }

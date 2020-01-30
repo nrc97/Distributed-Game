@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TestComponent } from './test/test.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatButtonModule, MatCardModule } from '@angular/material';
+import { MatButtonModule, MatCardModule, MatIconModule, MatSnackBarModule, MatChipsModule } from '@angular/material';
 import { SocketIoModule, SocketIoConfig}  from 'ngx-socket-io';
 import { CanvasComponent } from './canvas/canvas.component'
 import { HttpClientModule } from '@angular/common/http';
@@ -25,6 +25,9 @@ const config: SocketIoConfig = {url: 'http://192.168.137.1:3000', options: {}};
     BrowserAnimationsModule,
     MatButtonModule,
     MatCardModule,
+    MatIconModule,
+    MatChipsModule,
+    MatSnackBarModule,
     SocketIoModule.forRoot(config),
   ],
   providers: [],

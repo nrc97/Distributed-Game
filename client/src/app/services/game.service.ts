@@ -25,6 +25,12 @@ export class GameService {
 
   load() {
     this.reload().subscribe((data: {players: Player[], lollipops: Lollipop[]}) => {
+      if (this.players[this.player.id].available !== data.players[this.player.id].available){
+        this.playAudio("enterGame.wav"); 
+      }
+      if (this.players[this.player.id].score+1 === data.players[this.player.id].score){
+        this.playAudio("deleteLollipop.wav");
+      }
       this.lollipops = data.lollipops;
       this.players = data.players;
       this.emitData();
@@ -33,6 +39,12 @@ export class GameService {
       console.log(error);
     });
     this.reloadPlayers().subscribe((data: Player[]) => {
+      if (this.players[this.player.id].available !== data[this.player.id].available){
+        this.playAudio("enterGame.wav"); 
+      }
+      if (this.players[this.player.id].score+1 === data[this.player.id].score){
+        this.playAudio("deleteLollipop.wav");
+      }
       this.players = data;
       this.emitPlayers();
       // console.log('players emiited', this.players);
@@ -49,11 +61,17 @@ export class GameService {
       if (this.code === data.code) {
         this.player = data.player;
         this.emitPlayer();
+        this.playAudio("enterGame.wav")
         console.log('player added and emitted', this.player);
       }
       this.emitPlayers();
     });
     this.reloadCanvas().subscribe((data: Canvas) => {
+      if (!this.canvas.enCours && data.enCours){
+        this.playAudio("newGame.wav"); 
+      } else if (this.canvas.enCours && !data.enCours){
+        this.playAudio("endGame.wav");
+      }
       this.canvas.enCours = data.enCours;
       this.canvas.height = data.height;
       this.canvas.id = data.id;
@@ -153,4 +171,13 @@ export class GameService {
     this.socket.emit('status-declared', {id: this.player.id, available: this.player.available});
     console.log('status-declared', this.player.available);
   }
+
+  playAudio(sound: string){
+    const audio= new Audio();
+    audio.src="../../assets/audio/"+ sound;
+    audio.load();
+    audio.play();
+    
+  }
 }
+

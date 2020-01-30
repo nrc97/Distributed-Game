@@ -25,12 +25,15 @@ export class GameService {
 
   load() {
     this.reload().subscribe((data: {players: Player[], lollipops: Lollipop[]}) => {
-      if (this.players[this.player.id].available !== data.players[this.player.id].available){
-        this.playAudio("enterGame.wav"); 
+      if(this.player.id !== -1){
+        if (this.players[this.player.id].available !== data.players[this.player.id].available){
+          this.playAudio("enterGame.wav"); 
+        }
+        if (this.players[this.player.id].score+1 === data.players[this.player.id].score){
+          this.playAudio("deleteLollipop.wav");
+        }
       }
-      if (this.players[this.player.id].score+1 === data.players[this.player.id].score){
-        this.playAudio("deleteLollipop.wav");
-      }
+      
       this.lollipops = data.lollipops;
       this.players = data.players;
       this.emitData();
@@ -39,11 +42,13 @@ export class GameService {
       console.log(error);
     });
     this.reloadPlayers().subscribe((data: Player[]) => {
-      if (this.players[this.player.id].available !== data[this.player.id].available){
+      if(this.player.id !== -1){
+        if (this.players[this.player.id].available !== data[this.player.id].available){
         this.playAudio("enterGame.wav"); 
-      }
-      if (this.players[this.player.id].score+1 === data[this.player.id].score){
+         }
+       if (this.players[this.player.id].score+1 === data[this.player.id].score){
         this.playAudio("deleteLollipop.wav");
+       }
       }
       this.players = data;
       this.emitPlayers();

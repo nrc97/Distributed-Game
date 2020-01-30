@@ -42,7 +42,7 @@ export class GameService {
       console.log(error);
     });
     this.reloadPlayers().subscribe((data: Player[]) => {
-      if(this.player.id !== -1){
+      if(this.player.id !== -1 && this.players[this.player.id] !== undefined){
         if (this.players[this.player.id].available !== data[this.player.id].available){
         this.playAudio("enterGame.wav"); 
          }

@@ -6,53 +6,66 @@ import { Subject } from 'rxjs';
 
 @Injectable()
 export class GameService {
+    // tslint:disable: max-line-length
     playersCounter = 0;
     lollipopsCounter = 0;
     players: Player[] = [];
     lollipops: Lollipop[] = [];
     playersSubject: Subject<Player[]> = new Subject<Player[]>();
     lollipopsSubject: Subject<Lollipop[]> = new Subject<Lollipop[]>();
+    canvasSubject: Subject<Canvas> = new Subject<Canvas>();
     canvas: Canvas = new Canvas();
-    colors: string[] = ['red', 'blue', 'cyan', 'black', 'gray', 'purple', 'indigo', 'green', 'orange'];
+    colors: string[] = ['red', 'blue', 'orange', 'purple', 'indigo', 'gold', 'silver', 'brown', 'cyan', 'black', 'gray'];
 
     async newGame(lollipopsQte: number) {
         this.lollipopsCounter = 0;
         this.lollipops = [];
-        this.generateLollipops(lollipopsQte);
+        await this.generateLollipops(lollipopsQte);
+        this.canvas.enCours = true;
+        this.emitCanvas();
     }
 
-    async move(playerID: number, movement: string) {
+    async move(playerID: number, movement: string): Promise<string> {
         let player: Player = new Player();
-        this.players.forEach(elt => {
-            if (elt.id === playerID) {
-                player = elt;
-            }
-        });
+        if (playerID < this.players.length) {
+            player = this.players[playerID];
+        } else {
+            return '';
+        }
+        let result = '';
         if (movement === 'up' && player.coordy > 0) {
-            if (!this.coordinatesConflict(this.players, player.coordx, player.coordy - 20)) {
+            if (!this.coordinatesConflict(this.players, player.coordx, player.coordy - 20, false)) {
                 player.coordy -= 20;
+                result = 'players';
             }
-        } else if (movement === 'down' && player.coordy < this.canvas.height) {
-            if (!this.coordinatesConflict(this.players, player.coordx, player.coordy + 20)) {
+        } else if (movement === 'down' && player.coordy + 20 < this.canvas.height) {
+            if (!this.coordinatesConflict(this.players, player.coordx, player.coordy + 20, false)) {
                 player.coordy += 20;
+                result = 'players';
             }
-        } else if (movement === 'right' && player.coordx < this.canvas.width) {
-            if (!this.coordinatesConflict(this.players, player.coordx + 20, player.coordy)) {
+        } else if (movement === 'right' && player.coordx + 20 < this.canvas.width - 20 / 2) {
+            if (!this.coordinatesConflict(this.players, player.coordx + 20, player.coordy, false)) {
                 player.coordx += 20;
+                result = 'players';
             }
-        } else if (movement === 'left' && player.coordx < 0) {
-            if (!this.coordinatesConflict(this.players, player.coordx - 20, player.coordy)) {
+        } else if (movement === 'left' && player.coordx > 0) {
+            if (!this.coordinatesConflict(this.players, player.coordx - 20, player.coordy, false)) {
                 player.coordx -= 20;
+                result = 'players';
             }
         }
-        player = this.winLollipop(player); // retourne le joueur avec son nouveau score (+1) s'il gagne un nouveau bonbon
-        for (let i = 0; i < this.playersCounter; i++) {
-            if (this.players[i].id === player.id) {
-                this.players[i] = player;
-                this.emitPlayers();
-                break;
-            }
+        let exScore = player.score;
+        player = await this.winLollipop(player); // retourne le joueur avec son nouveau score (+1) s'il gagne un nouveau bonbon
+        if (exScore < player.score) {
+            result = 'all';
         }
+        this.players[playerID] = player;
+        this.emitPlayers();
+        if (this.lollipopsCounter === 0) {
+            this.canvas.enCours = false;
+            this.emitCanvas();
+        }
+        return result;
     }
 
     getPlayers(): Player[] {
@@ -64,35 +77,34 @@ export class GameService {
     }
 
     async newPlayer(): Promise<Player> {
-        const player: Player = new Player();
-        player.id = this.playersCounter;
+        const indice = this.players.push(new Player()) - 1;
+        this.players[indice].id = this.playersCounter;
         this.playersCounter++;
-        player.color = this.colors[player.id % 9];
+        this.players[indice].color = this.colors[this.players[indice].id % this.colors.length];
         do {
-            player.coordx = Math.floor(Math.floor(Math.random() * this.canvas.width) / (20)) * (20);
-            player.coordy = Math.floor(Math.floor(Math.random() * this.canvas.height) / (20)) * (20);
-        } while (this.coordinatesConflict(this.players, player.coordx, player.coordy));
-        this.players.push(player);
+            this.players[indice].coordx = Math.floor(Math.floor(Math.random() * this.canvas.width) / (20)) * (20);
+            this.players[indice].coordy = Math.floor(Math.floor(Math.random() * this.canvas.height) / (20)) * (20);
+        } while (this.coordinatesConflict(this.players.filter(elt => elt.id !== this.players[indice].id), this.players[indice].coordx, this.players[indice].coordy, true));
         this.emitPlayers();
-        return player;
+        return this.players[indice];
     }
-    coordinatesConflict(container: any[], coordx: number, coordy: number): boolean {
-        container.forEach(elt => {
-            if (elt.coordx === coordx && elt.coordy === coordy) {
+    coordinatesConflict(container: any[], coordx: number, coordy: number, firstTime: boolean): boolean {
+        if (firstTime) {
+            if (this.lollipops.filter(elt => elt.coordx === coordx && elt.coordy === coordy && elt.available === true).length !== 0 && this.players.filter(elt => elt.coordx === coordx && elt.coordy === coordy && elt.available === true).length !== 0) {
                 return true;
             }
-        });
-        return false;
+            return false;
+        }
+        return container.filter(elt => elt.coordx === coordx && elt.coordy === coordy && elt.available === true).length !== 0;
     }
 
-    winLollipop(player: Player): Player {
-        for (let i = 0; i < this.lollipops.length; i++) {
-            if (this.lollipops[i].coordx === player.coordx && this.lollipops[i].coordy === player.coordy) {
-                this.lollipops = this.lollipops.slice(0, i).concat(this.lollipops.slice(i + 1));
-                player.score += 1;
-                this.emitLollipops();
-                break;
-            }
+    async winLollipop(player: Player): Promise<Player> {
+        const lollipops = this.lollipops.filter(elt => elt.available === true && elt.coordx === player.coordx && elt.coordy === player.coordy).slice();
+        if (lollipops.length !== 0) {
+            this.lollipops[lollipops[0].id].available = false;
+            player.score += 1;
+            this.lollipopsCounter--;
+            this.emitLollipops();
         }
         return player;
     }
@@ -102,14 +114,38 @@ export class GameService {
         for (let i = 0; i < quantite; i++) {
             const lollipop = new Lollipop();
             lollipop.id = this.lollipopsCounter;
+            // lollipop.color = this.colors[this.lollipopsCounter % this.colors.length];
             this.lollipopsCounter++;
             do {
                 lollipop.coordx = Math.floor(Math.floor(Math.random() * this.canvas.width) / (20)) * (20);
                 lollipop.coordy = Math.floor(Math.floor(Math.random() * this.canvas.height) / (20)) * (20);
-            } while (this.coordinatesConflict(this.lollipops, lollipop.coordx, lollipop.coordy));
+            } while (this.coordinatesConflict(this.lollipops, lollipop.coordx, lollipop.coordy, true));
             this.lollipops.push(lollipop);
         }
         this.emitLollipops();
+    }
+
+    async disableAllPlayers() {
+        this.players.forEach((player, i) => {
+            this.players[i].available = false;
+        });
+        this.emitPlayers();
+    }
+
+    async enablePlayer(data: {id: number, available: boolean}) {
+        this.players[data.id].available = data.available;
+        while (this.coordinatesConflict(this.players.filter(elt => elt.id !== data.id), this.players[data.id].coordx, this.players[data.id].coordy, true)) {
+            this.players[data.id].coordx = Math.floor(Math.floor(Math.random() * this.canvas.width) / (20)) * (20);
+            this.players[data.id].coordy = Math.floor(Math.floor(Math.random() * this.canvas.height) / (20)) * (20);
+        }
+        this.emitPlayers();
+    }
+
+    async resetScores() {
+        this.players.forEach((elt, i) => {
+            this.players[i].score = 0;
+        });
+        this.emitPlayers();
     }
 
     emitPlayers() {
@@ -118,5 +154,8 @@ export class GameService {
 
     emitLollipops() {
         this.lollipopsSubject.next(this.lollipops.slice());
+    }
+    emitCanvas() {
+        this.canvasSubject.next(this.canvas);
     }
 }
